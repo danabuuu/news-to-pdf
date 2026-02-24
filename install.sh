@@ -19,7 +19,7 @@
 set -euo pipefail
 
 # ── GitHub source (update YOUR_USERNAME after you publish the repo) ────────────
-GITHUB_USER="YOUR_USERNAME"
+GITHUB_USER="danabuuu"
 REPO_RAW="https://raw.githubusercontent.com/${GITHUB_USER}/news-to-pdf/main"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || echo "")"
