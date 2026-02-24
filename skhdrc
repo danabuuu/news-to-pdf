@@ -1,0 +1,11 @@
+# ~/.config/skhd/skhdrc
+#
+# Apple News → PDF  (Cmd + Shift + P, only while Apple News is frontmost)
+# The [News] qualifier means this binding fires ONLY inside the News app,
+# so it won't conflict with Cmd+Shift+P in other applications.
+
+# Apple News → PDF
+cmd + shift - p [
+    "News" : ~/.local/bin/news_to_pdf.sh
+    *      ~
+]
