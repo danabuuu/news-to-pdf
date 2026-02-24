@@ -95,7 +95,17 @@ success "Scripts installed."
 
 # ── 4. Merge hotkey config into ~/.config/skhd/skhdrc ─────────────────────────
 info "Configuring skhd hotkey…"
-mkdir -p "$(dirname "$SKHD_CFG")"
+
+# Ensure ~/.config and ~/.config/skhd exist and are owned by the current user
+mkdir -p "$HOME/.config/skhd"
+if [[ ! -w "$HOME/.config" ]]; then
+    warn "~/.config is not writable — fixing permissions…"
+    chmod u+rwx "$HOME/.config"
+fi
+if [[ ! -w "$HOME/.config/skhd" ]]; then
+    warn "~/.config/skhd is not writable — fixing permissions…"
+    chmod u+rwx "$HOME/.config/skhd"
+fi
 touch "$SKHD_CFG"
 
 if grep -qF "$HOTKEY_MARKER" "$SKHD_CFG"; then
