@@ -96,16 +96,16 @@ success "Scripts installed."
 # ── 4. Merge hotkey config into ~/.config/skhd/skhdrc ─────────────────────────
 info "Configuring skhd hotkey…"
 
-# Ensure ~/.config and ~/.config/skhd exist and are owned by the current user
+# If ~/.config exists but is owned by root, reclaim it
+if [[ -e "$HOME/.config" ]]; then
+    config_owner=$(stat -f "%Su" "$HOME/.config" 2>/dev/null || stat -c "%U" "$HOME/.config" 2>/dev/null)
+    if [[ "$config_owner" != "$(whoami)" ]]; then
+        warn "~/.config is owned by '$config_owner' — reclaiming with sudo chown…"
+        sudo chown -R "$(whoami)" "$HOME/.config" || die "Could not chown ~/.config. Try: sudo chown -R \$(whoami) ~/.config"
+    fi
+fi
 mkdir -p "$HOME/.config/skhd"
-if [[ ! -w "$HOME/.config" ]]; then
-    warn "~/.config is not writable — fixing permissions…"
-    chmod u+rwx "$HOME/.config"
-fi
-if [[ ! -w "$HOME/.config/skhd" ]]; then
-    warn "~/.config/skhd is not writable — fixing permissions…"
-    chmod u+rwx "$HOME/.config/skhd"
-fi
+chmod u+rwx "$HOME/.config" "$HOME/.config/skhd"
 touch "$SKHD_CFG"
 
 if grep -qF "$HOTKEY_MARKER" "$SKHD_CFG"; then
