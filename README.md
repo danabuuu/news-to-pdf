@@ -35,9 +35,12 @@ PDFs are saved to:
 
 ## After installing
 
-You must grant **Accessibility access** to `skhd` once — the installer opens System Settings automatically at the end. If you missed it:
+You must grant `skhd` two permissions — the installer opens System Settings for each automatically. If you missed either:
 
-> **System Settings → Privacy & Security → Accessibility → [+] → /opt/homebrew/bin/skhd**
+| Permission | Where to add it |
+|---|---|
+| **Accessibility** | System Settings → Privacy & Security → Accessibility → [+] → `/opt/homebrew/bin/skhd` |
+| **Screen Recording** | System Settings → Privacy & Security → Screen Recording → [+] → `/opt/homebrew/bin/skhd` |
 
 ---
 
@@ -46,6 +49,7 @@ You must grant **Accessibility access** to `skhd` once — the installer opens S
 | Problem | Fix |
 |---|---|
 | Nothing happens when pressing Cmd+Shift+P | Check Accessibility access is toggled ON for skhd |
+| Screenshots are black / PDF is blank | Check Screen Recording access is toggled ON for skhd |
 | "Could not read Apple News window bounds" | Make sure an article is open and the News window is in front |
 | "PDF creation failed" | Check `/tmp/news_pdf.log` for details |
 | Hotkey stopped working after reboot | Run `skhd --start-service` in Terminal |
