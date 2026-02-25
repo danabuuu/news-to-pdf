@@ -150,11 +150,11 @@ echo "  2) Screen Recording — to take screenshots"
 echo ""
 echo "  We'll open System Settings twice, once for each."
 echo ""
-read -rp "  Press Enter to grant Accessibility access…"
+read -rp "  Press Enter to grant Accessibility access…" </dev/tty
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
 
 echo ""
-read -rp "  Press Enter to grant Screen Recording access…"
+read -rp "  Press Enter to grant Screen Recording access…" </dev/tty
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
 
 echo ""
