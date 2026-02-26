@@ -18,6 +18,13 @@
 
 set -euo pipefail
 
+# ── Must NOT run as root / sudo ───────────────────────────────────────────────
+if [[ "$EUID" -eq 0 ]]; then
+    echo "[ERROR] Do not run this script with sudo." >&2
+    echo "        Run it as your normal user:  ./install.sh" >&2
+    exit 1
+fi
+
 # ── GitHub source (update YOUR_USERNAME after you publish the repo) ────────────
 GITHUB_USER="danabuuu"
 REPO_RAW="https://raw.githubusercontent.com/${GITHUB_USER}/news-to-pdf/main"
@@ -61,16 +68,23 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # ── 1. Homebrew ────────────────────────────────────────────────────────────────
+# Load brew onto PATH now in case it was installed in a previous run but the
+# shell session never sourced the new PATH (handles both Apple Silicon & Intel).
+_load_brew_shellenv() {
+    if   [[ -x /opt/homebrew/bin/brew ]]; then eval "$(/opt/homebrew/bin/brew shellenv)"   # Apple Silicon
+    elif [[ -x /usr/local/bin/brew    ]]; then eval "$(/usr/local/bin/brew shellenv)"       # Intel
+    fi
+}
+_load_brew_shellenv
+
 if ! command -v brew &>/dev/null; then
     info "Homebrew not found — installing…"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # Re-load PATH immediately so the rest of this script can call 'brew'
+    _load_brew_shellenv
+    command -v brew &>/dev/null || die "Homebrew install finished but 'brew' is still not on PATH. Open a new terminal and re-run install.sh"
 else
     info "Homebrew already installed."
-fi
-
-# Make sure brew is on PATH (Apple Silicon default path)
-if [[ -f /opt/homebrew/bin/brew ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
 # ── 2. Install skhd ───────────────────────────────────────────────────────────
@@ -136,6 +150,17 @@ mkdir -p "$HOME/Documents/News PDFs"
 success "Output folder ready: ~/Documents/News PDFs/"
 
 # ── 7. Permission prompts ──────────────────────────────────────────────────────
+# Build the correct System Settings URLs for the running macOS version.
+# macOS 13 (Ventura) introduced the new Settings app with different URL routes.
+_MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
+if [[ "$_MACOS_MAJOR" -ge 13 ]]; then
+    _URL_ACCESSIBILITY="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility"
+    _URL_SCREEN_REC="x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_ScreenCapture"
+else
+    _URL_ACCESSIBILITY="x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+    _URL_SCREEN_REC="x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
+fi
+
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo -e "${YELLOW}  ACTION REQUIRED: Two Permissions Needed${RESET}"
@@ -143,19 +168,26 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "  skhd needs two permissions in System Settings."
 echo "  For each one: click [+], navigate to"
-echo "  /opt/homebrew/bin/ and select skhd."
+echo "  /opt/homebrew/bin/  (Intel: /usr/local/bin/)  and select skhd."
 echo ""
-echo "  1) Accessibility  — to scroll Apple News"
-echo "  2) Screen Recording — to take screenshots"
+echo "  1) Accessibility    — lets skhd scroll Apple News"
+echo "  2) Screen Recording — lets skhd take screenshots"
 echo ""
-echo "  We'll open System Settings twice, once for each."
+echo "  System Settings will open twice, once for each."
 echo ""
-read -rp "  Press Enter to grant Accessibility access…" </dev/tty
-open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+read -rp "  Press Enter to open Accessibility settings…" </dev/tty
+open "$_URL_ACCESSIBILITY"
 
 echo ""
-read -rp "  Press Enter to grant Screen Recording access…" </dev/tty
-open "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
+echo "  After adding skhd there, come back here."
+read -rp "  Press Enter to open Screen Recording settings…" </dev/tty
+open "$_URL_SCREEN_REC"
+
+echo ""
+warn "Screen Recording cannot be granted automatically by a script on macOS."
+echo "  If System Settings did not open to Screen Recording directly, navigate to:"
+echo "  System Settings → Privacy & Security → Screen Recording"
+echo "  then click [+] and add  skhd  from /opt/homebrew/bin/ (or /usr/local/bin/)." 
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
