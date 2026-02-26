@@ -66,8 +66,16 @@ You must grant `skhd` two permissions — the installer opens System Settings fo
 
 ## Uninstall
 
+If you installed from a local clone:
+
 ```bash
-rm ~/.local/bin/news_to_pdf.sh ~/.local/bin/combine_pdf.py
-skhd --stop-service
-# Remove the hotkey block from ~/.config/skhd/skhdrc
+./uninstall.sh
 ```
+
+Or run the uninstaller directly without cloning:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/danabuuu/news-to-pdf/main/uninstall.sh | bash
+```
+
+This stops and removes the skhd service, uninstalls skhd via Homebrew, removes the capture scripts from `~/.local/bin/`, and strips the hotkey block from `~/.config/skhd/skhdrc`. Your saved PDFs in `~/Documents/News PDFs/` are not touched.
