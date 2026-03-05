@@ -47,8 +47,8 @@ if [ -z "$X" ] || [ -z "$W" ]; then
 fi
 
 # ── 3. Scroll to the very top of the article ──────────────────────────────────
-osascript -e 'tell application "System Events" to key code 115' # Fn+Left / Home
-sleep 0.6
+osascript -e 'tell application "System Events" to key code 126 using command down' # Cmd+Up
+sleep 0.8
 
 osascript -e 'display notification "Capturing article — please wait…" with title "News → PDF"'
 
