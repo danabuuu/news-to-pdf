@@ -231,6 +231,28 @@ def _build_jpeg_pdf(pages: list[tuple[bytes, int, int]]) -> bytes:
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
+def _strip_nav(image_dir: str) -> None:
+    """
+    Call the strip_nav binary to white-out the static left nav panel.
+    The binary compares frame 0 vs frame 1: columns with no change are nav;
+    columns that change are scrolling content. Modifies PNGs in-place.
+    Silently skips if the binary is not installed or no nav is detected.
+    """
+    binary = os.path.join(os.path.dirname(os.path.abspath(__file__)), "strip_nav")
+    if not (os.path.isfile(binary) and os.access(binary, os.X_OK)):
+        return
+    try:
+        result = subprocess.run([binary, image_dir], capture_output=True, text=True)
+        if result.returncode == 0:
+            log.info("strip_nav: %s", result.stderr.strip())
+        elif result.returncode == 2:
+            log.info("strip_nav: no nav panel detected")
+        else:
+            log.warning("strip_nav exited %d: %s", result.returncode, result.stderr.strip())
+    except Exception as exc:
+        log.warning("strip_nav failed: %s", exc)
+
+
 def main() -> int:
     if len(sys.argv) != 3:
         print(f"Usage: {sys.argv[0]} <image_dir> <output.pdf>")
@@ -246,6 +268,9 @@ def main() -> int:
 
     log.info("Starting PDF combine: %d frames → %s", len(png_files), output_path)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    # Strip left nav panel if present (uses frame-differencing; silent if not detected)
+    _strip_nav(image_dir)
 
     # Try best approach first, fall back if unavailable
     if combine_via_pdfkit(png_files, output_path):

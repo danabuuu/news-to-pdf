@@ -100,10 +100,30 @@ fi
 info "Installing capture scripts to ${BIN_DIR}…"
 mkdir -p "$BIN_DIR"
 
-fetch_file "news_to_pdf.sh" "$BIN_DIR/news_to_pdf.sh"
+fetch_file "news_to_pdf.sh"  "$BIN_DIR/news_to_pdf.sh"
 fetch_file "combine_pdf.py"  "$BIN_DIR/combine_pdf.py"
+fetch_file "strip_nav.swift" "$BIN_DIR/strip_nav.swift"
 chmod +x "$BIN_DIR/news_to_pdf.sh"
 chmod +x "$BIN_DIR/combine_pdf.py"
+
+# ── Compile the nav-stripping Swift helper (requires Xcode Command Line Tools) ─
+SWIFT_BIN="$BIN_DIR/strip_nav"
+SWIFT_SRC="$BIN_DIR/strip_nav.swift"
+if command -v xcrun &>/dev/null && xcrun --find swiftc &>/dev/null 2>&1; then
+    info "Compiling nav-strip helper (strip_nav)…"
+    BUILD_TMP="$(mktemp /tmp/strip_nav_XXXXXX.swift)"
+    cp "$SWIFT_SRC" "$BUILD_TMP"
+    if xcrun swiftc -O "$BUILD_TMP" -o "$SWIFT_BIN" \
+            -framework Foundation -framework CoreGraphics -framework ImageIO 2>&1; then
+        rm -f "$BUILD_TMP"
+        success "strip_nav compiled → ${SWIFT_BIN}"
+    else
+        rm -f "$BUILD_TMP"
+        warn "Swift compilation failed — nav stripping will be skipped at runtime."
+    fi
+else
+    warn "swiftc not found — nav stripping will be skipped. Install Xcode Command Line Tools then re-run install.sh."
+fi
 
 success "Scripts installed."
 
